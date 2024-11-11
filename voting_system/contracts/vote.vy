@@ -1,13 +1,12 @@
 #vote.vy
 #pragma optimize gas
-
-from ethereum.ercs import IERC20
+# @version ^0.2.0
 
 # struct to store a ballot offering
 struct ballot:
-    president: candidate
+    president: address
     ballot_id: uint256
-    vice_president: candidate
+    vice_president: address
     votes: uint256
     campaign_fund: uint256
 
@@ -28,7 +27,7 @@ next_ballot_id: uint256
 #    voter: address
 #    amount: uint256
 
-@deploy
+@external
 def __init__():
     """
     Constructor to initialize ballots
@@ -49,7 +48,7 @@ def vote(ballot_identifier: uint256):
 
     if(msg.value > 0): #someone sent money along with their vote
         self.ballots[ballot_identifier].campaign_fund += msg.value #add to campaign fund
-        send(self.ballots[ballot_identifier].president.candidate_id, msg.value) #sending money during voting goes to president's address
+        send(self.ballots[ballot_identifier].president, msg.value) #sending money during voting goes to president's address
     
 
     # add vote to ballot
@@ -58,11 +57,12 @@ def vote(ballot_identifier: uint256):
     # log the Vote event to the frontend
     #log VoteCast(candidate, msg.sender, msg.value)
 
-@external
-@view
-def get_all_ballots():
-    for ballot_info: uint256 in range(0, self.next_ballot_id, bound=100):
-        self.get_ballot_info(ballot_info)
+#@external
+#@view
+#def get_all_ballots():
+#    start: uint256 = 0
+#    for i: uint256 in range(0, 2):
+#        self.get_ballot_info(i)
 
 @view
 @internal
