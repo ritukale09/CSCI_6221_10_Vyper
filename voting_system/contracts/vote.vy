@@ -1,5 +1,5 @@
 #vote.vy
-# @version ^0.2.0
+#@version 0.4.0
 
 # struct to store a ballot offering
 struct ballot:
@@ -20,6 +20,7 @@ struct candidate:
 candidates: public(HashMap[address, candidate])
 ballots: public(HashMap[int128, ballot])
 next_ballot_id: int128
+vote_count: int128
 
 # event for when a vote happens to be caught by frontend
 event VoteCast:
@@ -48,12 +49,20 @@ event BallotUpdated:
     ballot_id: int128
     votes: uint256
 
-@external
+# event for when a winner is chosen to be caught by frontend
+event WinnerChosen:
+    pres: address
+    vice: address
+    ballot_id: int128
+    votes: uint256
+
+@deploy
 def __init__():
     """
     Constructor to initialize ballots
     """
     self.next_ballot_id = 0
+    self.vote_count = 0
 
 @internal
 def _ballot_created(main_pres: address, vp: address, ballot_id: int128, votes: uint256):
@@ -79,11 +88,11 @@ def create_ballot(main_pres: address, vice_pres: address):
 
     #check to ensure candidates have been created
     assert pres_inst.candidate_id == main_pres and vice_inst.candidate_id == vice_pres, "President or Vice President does not exist"
-    
+
     #check to make sure that ballot for these candidates doesn't already exist
-    for i in range(0,10):
-        if(i<self.next_ballot_id):
-            assert self.ballots[i].president != main_pres or self.ballots[i].vice_president != vice_pres, "A Ballot for these candidates already exists"
+    for ind: int128 in range(0,10):
+        if(ind<self.next_ballot_id):
+            assert self.ballots[ind].president != main_pres or self.ballots[ind].vice_president != vice_pres, "A Ballot for these candidates already exists"
         else:
             break
 
@@ -102,14 +111,11 @@ def _candidate_created(name: String[100], _ad: address, state: String[100], age:
 @external
 def create_candidate(candidate_name: String[100], candidate_address: address,candidate_state: String[100], candidate_age: uint256):
     #create a candidate struct and add it to candidates hashmap
-    #returns: address of newly created candidate
+    #check president and vice president are old enough
+    assert candidate_age >= 35, "This person is not old enough to run for office"
     candidate_instance: candidate = candidate({name: candidate_name, candidate_id: candidate_address, home_state:candidate_state, age: candidate_age})
     self.candidates[candidate_instance.candidate_id] = candidate_instance
     self._candidate_created(candidate_instance.name, candidate_instance.candidate_id, candidate_instance.home_state, candidate_instance.age)
-    # print("Candidate Created: ", self.candidates[candidate_instance.candidate_id].name)
-    # print("Candidate Address: ", self.candidates[candidate_instance.candidate_id].candidate_id)
-    # print("Candidate State: ", self.candidates[candidate_instance.candidate_id].home_state)
-    # print("Candidate Age: ", self.candidates[candidate_instance.candidate_id].age)
 
 @internal
 def _vote_cast(_by: address, _to: address, _value: uint256):
@@ -129,26 +135,37 @@ def vote(ballot_identifier: int128):
     if(msg.value > 0): #someone sent money along with their vote
         self.ballots[ballot_identifier].campaign_fund += msg.value #add to campaign fund
         send(self.ballots[ballot_identifier].president, msg.value) #sending money during voting goes to president's address
-    
+        
+
     # add vote to ballot
     self.ballots[ballot_identifier].votes += 1
 
     # log the Vote event and ballot update to the frontend
     self._vote_cast(msg.sender, self.ballots[ballot_identifier].president, msg.value)
     self._ballot_updated(self.ballots[ballot_identifier].president, self.ballots[ballot_identifier].vice_president, ballot_identifier, self.ballots[ballot_identifier].votes)
-    
-#@external
-#@view
-#def get_all_ballots():
-#    start: uint256 = 0
-#    for i: uint256 in range(0, 2):
-#        self.get_ballot_info(i)
+    self.vote_count+=1
 
-# @view
-# @internal
-# def get_ballot_info(ballot_identifier: uint256) -> (uint256, uint256):
-#     """
-#     Returns the ballots total votes and total funds received for their campaign
-#     """
-#     assert ballot_identifier < self.next_ballot_id and self.next_ballot_id != 0, "no ballot for ballot id"
-#     return (self.ballots[ballot_identifier].votes, self.ballots[ballot_identifier].campaign_fund)
+@internal
+def _winner_chosen(main_pres: address, vp: address, ballot_id: int128, votes: uint256):
+    """
+    @dev Internal shared logic for logging that a winner has been chosen
+    """
+    log WinnerChosen(main_pres, vp, ballot_id, votes)
+
+@external
+def get_winning_ballot()->int128:
+    #reads ballot vote count and returns ballot id of winner
+    maxvotes: uint256 = 0
+    winning_ballot: int128 = -1
+
+    for ind: int128 in range(0,10):
+        if(ind<self.next_ballot_id):
+            if(self.ballots[ind].votes>=maxvotes):
+                winning_ballot = ind
+                maxvotes = self.ballots[ind].votes
+        else:
+            break
+
+    assert maxvotes != 0 and winning_ballot != -1, "No Winner Selected"
+    self._winner_chosen(self.ballots[winning_ballot].president, self.ballots[winning_ballot].vice_president, winning_ballot, self.ballots[winning_ballot].votes)
+    return winning_ballot
