@@ -73,3 +73,64 @@ brownie run scripts/deploy_user_info.py
 
 # View user information
 >>> user_info.get_user_info()
+
+// ... existing content ...
+
+## social_benefits.vy
+
+This Vyper smart contract implements a decentralized system for managing and distributing social benefits like Medicare, Medicaid, and Social Security.
+
+### Features
+
+#### Benefit Types
+- Medicare (0.5 ETH monthly)
+- Medicaid (0.3 ETH monthly)
+- Social Security (0.4 ETH monthly)
+
+#### Data Storage
+- Beneficiary information
+- Benefit claim history
+- Treasury management
+- Benefit type configurations
+
+#### Core Functions
+- `register_beneficiary()`: Registers new benefit recipients
+- `claim_benefit()`: Processes benefit claims
+- `fund_treasury()`: Adds funds to treasury
+- `update_benefit_amount()`: Modifies benefit amounts
+- `get_beneficiary_total()`: Views total benefits received
+
+#### Security Features
+- Owner-controlled registration
+- Treasury balance checks
+- Eligibility verification
+- Event logging for transparency
+
+### Usage Examples
+
+```python
+# Deploy contract
+brownie run scripts/deploy_social_benefits.py
+
+# In Brownie console
+>>> benefits = SocialBenefits.at('CONTRACT_ADDRESS')
+
+# Fund treasury
+>>> benefits.fund_treasury({'value': "10 ether"})
+
+# Register new beneficiary
+>>> benefits.register_beneficiary('BENEFICIARY_ADDRESS')
+
+# Claim benefit
+>>> benefits.claim_benefit("MEDICARE")
+
+# Check total benefits received
+>>> benefits.get_beneficiary_total('BENEFICIARY_ADDRESS')
+```
+
+#### Integration with User Info System
+The social benefits system can be used alongside the user information system to:
+- Verify identity
+- Validate eligibility
+- Track benefit distributions
+- Maintain compliance records
