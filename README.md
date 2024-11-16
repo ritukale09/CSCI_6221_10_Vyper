@@ -74,9 +74,9 @@ brownie run scripts/deploy_user_info.py
 # View user information
 >>> user_info.get_user_info()
 
-// ... existing content ...
+```
 
-## social_benefits.vy
+### social_benefits.vy
 
 This Vyper smart contract implements a decentralized system for managing and distributing social benefits like Medicare, Medicaid, and Social Security.
 
