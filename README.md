@@ -2,7 +2,7 @@
 
 Repository for CSCI_6221_10_Vyper group project implementing smart contracts using the Vyper language.
 
-> **IMPORTANT:** DO NOT EDIT OR DELETE FILES IN THE voting_system/build and voting_system/reports folders. These are used by Brownie.
+> **IMPORTANT:** DO NOT EDIT OR DELETE FILES IN THE */build and */reports folders. These are used by Brownie.
 
 ## Project Description
 
