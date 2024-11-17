@@ -22,7 +22,7 @@ benefit_types: public(HashMap[String[32], uint256])  # name -> amount
 owner: public(address)
 treasury: public(address)
 
-@external
+@deploy
 def __init__():
     """
     Initialize contract with default benefit types and amounts
