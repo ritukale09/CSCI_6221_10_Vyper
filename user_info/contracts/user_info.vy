@@ -1,16 +1,26 @@
 # user_info.vy
+#@version 0.4.0
 
 struct UserInfo:
     license_number: String[20]
     license_expiration: uint256  # timestamp
     voter_registered: bool
     exists: bool
+    age: uint256
 
 # Mapping from user address to their information
 users: public(HashMap[address, UserInfo])
+min_voter_age: uint256
+
+@deploy
+def __init__():
+    """
+    Constructor to initialize contract
+    """
+    self.min_voter_age = 18
 
 @external
-def register_user(license_num: String[20], expiration: uint256):
+def register_user(license_num: String[20], expiration: uint256, voter_age: uint256):
     """
     Register a new user with their driver's license information
     """
@@ -20,7 +30,8 @@ def register_user(license_num: String[20], expiration: uint256):
         license_number: license_num,
         license_expiration: expiration,
         voter_registered: False,
-        exists: True
+        exists: True, 
+        age: voter_age
     })
 
 @external
@@ -39,7 +50,7 @@ def update_voter_status(is_registered: bool):
     Update voter registration status
     """
     assert self.users[msg.sender].exists, "User not registered"
-    
+    assert self.users[msg.sender].age >= 18, "User is not old enough to vote"
     self.users[msg.sender].voter_registered = is_registered
 
 @view

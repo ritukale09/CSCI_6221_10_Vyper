@@ -1,16 +1,9 @@
-from vyper.interfaces import ERC20
-
-struct BenefitType:
-    name: String[32]
-    monthly_amount: uint256
-    is_active: bool
-    last_claimed: uint256
-
+#@version 0.4.0
 struct Beneficiary:
     address: address
     eligible: bool
-    benefit_types: DynArray[BenefitType, 10]
     total_received: uint256
+    age: uint256
 
 # Events
 event BenefitClaimed:
@@ -35,7 +28,7 @@ def __init__():
     Initialize contract with default benefit types and amounts
     """
     self.owner = msg.sender
-    self.treasury = msg.sender
+    self.treasury = msg.value
     
     # Set default benefit amounts (in Wei)
     self.benefit_types["MEDICARE"] = 500_000_000_000_000_000  # 0.5 ETH
@@ -43,7 +36,7 @@ def __init__():
     self.benefit_types["SOCIAL_SECURITY"] = 400_000_000_000_000_000  # 0.4 ETH
 
 @external
-def register_beneficiary(beneficiary: address):
+def register_beneficiary(beneficiary: address, beneficiary_age: uint256):
     """
     Register a new beneficiary for benefits
     """
@@ -53,8 +46,8 @@ def register_beneficiary(beneficiary: address):
     self.beneficiaries[beneficiary] = Beneficiary({
         address: beneficiary,
         eligible: True,
-        benefit_types: [],
-        total_received: 0
+        total_received: 0, 
+        age: beneficiary_age
     })
     
     log BeneficiaryRegistered(beneficiary, block.timestamp)
@@ -70,14 +63,19 @@ def claim_benefit(benefit_type: String[32]):
     # Check if contract has enough balance
     amount: uint256 = self.benefit_types[benefit_type]
     assert self.balance >= amount, "Insufficient contract balance"
-    
-    # Transfer benefit amount
-    send(msg.sender, amount)
-    
-    # Update beneficiary records
-    self.beneficiaries[msg.sender].total_received += amount
-    
-    log BenefitClaimed(msg.sender, benefit_type, amount, block.timestamp)
+
+    if(self.beneficiaries.age > 62 and benefit_type == "SOCIAL_SECURITY"):
+        # Transfer benefit amount
+        send(msg.sender, amount)
+        # Update beneficiary records
+        self.beneficiaries[msg.sender].total_received += amount
+        log BenefitClaimed(msg.sender, benefit_type, amount, block.timestamp)
+
+    elif(self.beneficiaries[msg.sender].eligible and benefit_type != "SOCIAL_SECURITY"):
+        send(msg.sender, amount)
+        # Update beneficiary records
+        self.beneficiaries[msg.sender].total_received += amount
+        log BenefitClaimed(msg.sender, benefit_type, amount, block.timestamp)
 
 @external
 @payable
@@ -86,6 +84,7 @@ def fund_treasury():
     Allow funding the treasury for benefit payments
     """
     assert msg.value > 0, "Must send ETH"
+    self.treasury = self.treasury + msg.value
 
 @external
 def update_benefit_amount(benefit_type: String[32], new_amount: uint256):

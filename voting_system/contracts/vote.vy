@@ -21,6 +21,7 @@ candidates: public(HashMap[address, candidate])
 ballots: public(HashMap[int128, ballot])
 next_ballot_id: int128
 vote_count: int128
+voters: public(HashMap[address, bool])
 
 # event for when a vote happens to be caught by frontend
 event VoteCast:
@@ -131,6 +132,7 @@ def vote(ballot_identifier: int128):
     Function to vote for a ballot
     """
     assert ballot_identifier < self.next_ballot_id and self.next_ballot_id != 0, "no ballot for ballot id"
+    assert self.voters[msg.sender] != True, "Cannot vote twice"
 
     if(msg.value > 0): #someone sent money along with their vote
         self.ballots[ballot_identifier].campaign_fund += msg.value #add to campaign fund
@@ -142,6 +144,7 @@ def vote(ballot_identifier: int128):
 
     # log the Vote event and ballot update to the frontend
     self._vote_cast(msg.sender, self.ballots[ballot_identifier].president, msg.value)
+    self.voters[msg.sender] = True
     self._ballot_updated(self.ballots[ballot_identifier].president, self.ballots[ballot_identifier].vice_president, ballot_identifier, self.ballots[ballot_identifier].votes)
     self.vote_count+=1
 
