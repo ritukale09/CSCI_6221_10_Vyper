@@ -15,11 +15,13 @@ struct candidate:
     candidate_id: address
     home_state: String[100]
     age: uint256
+    exists: bool
 
 # state vars
 candidates: public(HashMap[address, candidate])
 ballots: public(HashMap[int128, ballot])
 next_ballot_id: int128
+num_candidates: int128
 vote_count: int128
 voters: public(HashMap[address, bool])
 
@@ -63,6 +65,7 @@ def __init__():
     Constructor to initialize ballots
     """
     self.next_ballot_id = 0
+    self.num_candidates = 0
     self.vote_count = 0
 
 @internal
@@ -114,7 +117,9 @@ def create_candidate(candidate_name: String[100], candidate_address: address,can
     #create a candidate struct and add it to candidates hashmap
     #check president and vice president are old enough
     assert candidate_age >= 35, "This person is not old enough to run for office"
-    candidate_instance: candidate = candidate({name: candidate_name, candidate_id: candidate_address, home_state:candidate_state, age: candidate_age})
+    #check to make sure this address is not already in use
+    assert not self.candidates[candidate_address].exists, "This candidate is already created"
+    candidate_instance: candidate = candidate({name: candidate_name, candidate_id: candidate_address, home_state:candidate_state, age: candidate_age, exists: True})
     self.candidates[candidate_instance.candidate_id] = candidate_instance
     self._candidate_created(candidate_instance.name, candidate_instance.candidate_id, candidate_instance.home_state, candidate_instance.age)
 
