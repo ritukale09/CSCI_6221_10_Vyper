@@ -20,8 +20,9 @@ event BeneficiaryRegistered:
 beneficiaries: public(HashMap[address, Beneficiary])
 benefit_types: public(HashMap[String[32], uint256])  # name -> amount
 owner: public(address)
-treasury: public(address)
+treasury: uint256
 
+@payable
 @deploy
 def __init__():
     """
@@ -64,7 +65,7 @@ def claim_benefit(benefit_type: String[32]):
     amount: uint256 = self.benefit_types[benefit_type]
     assert self.balance >= amount, "Insufficient contract balance"
 
-    if(self.beneficiaries.age > 62 and benefit_type == "SOCIAL_SECURITY"):
+    if(self.beneficiaries[msg.sender].age > 62 and benefit_type == "SOCIAL_SECURITY"):
         # Transfer benefit amount
         send(msg.sender, amount)
         # Update beneficiary records
