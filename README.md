@@ -2,7 +2,7 @@
 
 Repository for CSCI_6221_10_Vyper group project implementing smart contracts using the Vyper language.
 
-> **IMPORTANT:** DO NOT EDIT OR DELETE FILES IN THE */build and */reports folders. These are used by Brownie.
+> **IMPORTANT:** DO NOT EDIT OR DELETE FILES IN THE */build and */reports folders. 
 
 ## Project Description
 
@@ -14,7 +14,6 @@ This project implements various smart contracts in Vyper, including:
 ## Prerequisites
 
 - Python 3.7+
-- [Brownie](https://eth-brownie.readthedocs.io/)
 - [Ganache](https://trufflesuite.com/ganache/)
 - [Node.js](https://nodejs.org/)
 
@@ -27,8 +26,6 @@ git clone https://github.com/yourusername/CSCI_6221_10_Vyper.git
 # Install dependencies
 pip install -r requirements.txt
 
-# Install Brownie
-pip install eth-brownie
 ```
 
 ## user_info.vy 
@@ -56,10 +53,8 @@ This Vyper smart contract implements a decentralized system for managing persona
 ### Usage Examples
 
 ```python
-# Deploy contract
-brownie run scripts/deploy_user_info.py
 
-# In Brownie console
+# Set up contract instance
 >>> user_info = UserInfo.at('CONTRACT_ADDRESS')
 
 # Register new user
@@ -109,10 +104,8 @@ This Vyper smart contract implements a decentralized system for managing and dis
 ### Usage Examples
 
 ```python
-# Deploy contract
-brownie run scripts/deploy_social_benefits.py
 
-# In Brownie console
+# Set up contract instance
 >>> benefits = SocialBenefits.at('CONTRACT_ADDRESS')
 
 # Fund treasury
@@ -134,3 +127,54 @@ The social benefits system can be used alongside the user information system to:
 - Validate eligibility
 - Track benefit distributions
 - Maintain compliance records
+
+## vote.vy
+
+This Vyper smart contract implements a decentralized voting system for managing elections and campaigns.
+
+### Features
+
+#### Data Storage
+- Ballots: Includes information about the president, vice president, votes, and campaign funds.
+- Candidates: Stores candidate details like name, home state, age, and unique candidate ID.
+- State Variables: Tracks the next ballot ID and maps ballot and candidate data.
+
+#### Core Functions
+- `create_candidate()`: Registers a new candidate with name, address, state, and age.
+- `create_ballot()`: Creates a new ballot associating a president and vice president.
+- `vote()`: Casts a vote for a specific ballot, optionally with a campaign donation.
+
+#### Security Features 
+- Uniqueness checks: Ensures no duplicate ballots or candidates are created.
+- Candidate Validation: Validates the existence of candidates and ballots before any actions.
+- Event Logging: Provides transparency by logging vote casting, candidate creation, and ballot updates.
+
+### Usage Examples
+
+```
+# Register a new candidate  
+>>> voting.create_candidate("Alice Johnson", 'CANDIDATE_ADDRESS', "Texas", 50)  
+
+# Create a new ballot  
+>>> voting.create_ballot('PRESIDENT_ADDRESS', 'VICE_PRESIDENT_ADDRESS')  
+
+# Cast a vote  
+>>> voting.vote(0, 1000000000000000000)  # Vote for ballot ID 0 and donate 1 ETH (in Wei)  
+
+# Retrieve candidate details  
+>>> voting.candidates('CANDIDATE_ADDRESS')  
+
+# Retrieve ballot details  
+>>> voting.ballots(0)  
+```
+#### Integration Opportunities
+- Identity Verification: Using a separate smart contract to verify voter identity.
+- Campaign Management: Facilitating secure and transparent allocation of campaign funds.
+- Analytics Dashboards: Utilizing event logs to display real-time election data on a front-end.
+
+
+
+
+
+
+
