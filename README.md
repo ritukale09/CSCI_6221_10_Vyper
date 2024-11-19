@@ -134,3 +134,49 @@ The social benefits system can be used alongside the user information system to:
 - Validate eligibility
 - Track benefit distributions
 - Maintain compliance records
+
+## vote.vy
+
+This Vyper smart contract implements a decentralized voting system for managing elections and campaigns.
+
+### Features
+
+#### Data Storage
+- Ballots: Information about each ballot, including president, vice president, votes, and campaign funds.
+- Candidates: Stores candidate details like name, unique ID (address), home state, and age.
+- State Variables: Maintains the next ballot ID and mappings for ballots and candidates.
+
+#### Core Functions
+- create_candidate(): Registers a new candidate by storing their details.
+- create_ballot(): Creates a ballot associating a president and vice president.
+- vote(): Allows users to cast votes for a ballot and optionally donate funds to the campaign.
+
+#### Security Features
+- Candidate Validation: Ensures that candidates exist before creating a ballot.
+- Duplicate Checks: Prevents duplicate ballots for the same president and vice president pair.
+- Event Logging: Transparently logs candidate creation, ballot updates, and vote casting.
+
+### User Examples
+
+# Register a new candidate  
+>>> voting.create_candidate("Alice Johnson", 'CANDIDATE_ADDRESS', "Texas", 50)
+
+# Create a new ballot  
+>>> voting.create_ballot('PRESIDENT_ADDRESS', 'VICE_PRESIDENT_ADDRESS')
+
+# Cast a vote  
+>>> voting.vote(0, 1000000000000000000)  # Vote for ballot ID 0 and donate 1 ETH (in Wei)
+
+# Retrieve candidate details  
+>>> voting.candidates('CANDIDATE_ADDRESS')  
+
+# Retrieve ballot details  
+>>> voting.ballots(0)
+
+#### Integration Opportunities
+
+The voting system can integrate with external systems for:
+- Identity Verification: Using a separate smart contract to verify voter identity.
+- Campaign Management: Facilitating secure and transparent allocation of campaign funds.
+- Analytics Dashboards: Utilizing event logs to display real-time election data on a frontend.
+
